@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Time-Blocking To-Do (MVP)</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0b1225">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Time-Blocking To-Do</h1>
+    <div class="topbar-actions">
+      <button id="btn-export" title="Daten exportieren">Export</button>
+      <button id="btn-import" title="Daten importieren">Import</button>
+      <input id="import-file" type="file" accept="application/json" hidden />
+      <button id="btn-reset" class="danger" title="Alle Daten löschen">Reset</button>
+      <button id="btn-install" class="ghost" title="Als App installieren (PWA)" style="display:none">Installieren</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Einstellungen -->
+    <section class="card">
+      <h2>Einstellungen</h2>
+      <div class="row">
+        <label>Arbeitszeit (Start)
+          <input type="time" id="workStart" value="08:00">
+        </label>
+        <label>Arbeitszeit (Ende)
+          <input type="time" id="workEnd" value="18:00">
+        </label>
+        <label>Planungstage (Rollierend)
+          <input type="number" id="horizonDays" min="1" max="30" value="14">
+        </label>
+        <label>Max. Block-Länge (Min)
+          <input type="number" id="maxBlockMin" min="15" step="15" value="60">
+        </label>
+      </div>
+      <div class="row">
+        <button id="btn-schedule" class="primary">Auto-Planen</button>
+        <span id="schedule-status" class="muted"></span>
+      </div>
+    </section>
+
+    <!-- Events -->
+    <section class="card">
+      <h2>Termine (Events)</h2>
+      <form id="eventForm" class="grid-4">
+        <input type="text" id="evtTitle" placeholder="Titel (z. B. ICE → Ellen)" required>
+        <input type="datetime-local" id="evtStart" required>
+        <input type="datetime-local" id="evtEnd" required>
+        <input type="text" id="evtLocation" placeholder="Ort (optional)">
+        <div class="row">
+          <label class="checkbox"><input type="checkbox" id="evtBusy" checked> Busy blocken</label>
+          <button class="primary" type="submit">Event hinzufügen</button>
+        </div>
+      </form>
+      <div id="eventsList" class="list"></div>
+    </section>
+
+    <!-- Tasks -->
+    <section class="card">
+      <h2>Aufgaben (Tasks)</h2>
+      <form id="taskForm" class="grid-4">
+        <input type="text" id="taskTitle" placeholder="Aufgabe (z. B. Einkauf bei Ellen)" required>
+        <input type="number" id="taskDuration" min="5" step="5" value="45" placeholder="Dauer (Min)" required>
+        <select id="taskPriority">
+          <option value="high">Priorität: Hoch</option>
+          <option value="medium" selected>Priorität: Mittel</option>
+          <option value="low">Priorität: Niedrig</option>
+        </select>
+        <input type="datetime-local" id="taskDue" placeholder="Deadline (optional)">
+
+        <select id="anchorType">
+          <option value="">— kein Anker —</option>
+          <option value="id">An Event (ID)</option>
+          <option value="query" selected>Per Suchbegriff</option>
+        </select>
+        <input type="text" id="anchorValue" placeholder="z. B. „ICE → Ellen“">
+        <select id="anchorRelation">
+          <option value="AFTER" selected>Nach dem Event</option>
+          <option value="BEFORE">Vor dem Event</option>
+        </select>
+        <input type="number" id="anchorOffset" value="30" min="0" step="5" placeholder="Offset (Min)">
+
+        <label class="checkbox"><input type="checkbox" id="sameLoc"> Ort muss wie Anker sein</label>
+        <input type="text" id="geoFence" placeholder="Geofence (lat,lng,radiusM) optional">
+
+        <input type="text" id="timeWindow" placeholder="Zeitfenster HH:MM-HH:MM (optional, z. B. 10:00-21:00)">
+        <input type="text" id="allowedDays" placeholder="Tage (z. B. Mon,Tue,Wed,Thu,Fri)">
+        <input type="number" id="maxDelayAfter" min="0" step="30" placeholder="Max Delay nach Anker (Min)">
+        <div class="row">
+          <button type="submit" class="primary">Task hinzufügen</button>
+        </div>
+      </form>
+
+      <div class="split">
+        <div>
+          <h3>Offene Tasks</h3>
+          <div id="tasksList" class="list"></div>
+        </div>
+        <div>
+          <h3>Geplante Blöcke</h3>
+          <div id="scheduledList" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Week View -->
+    <section class="card">
+      <h2>Kalender-Woche</h2>
+      <div id="weekGrid" class="week-grid"></div>
+      <div class="legend">
+        <span class="badge event">Event</span>
+        <span class="badge task">Task</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>Local-first · Offlinefähig · MVP v1.0</small>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(()=>{});
+      });
+    }
+  </script>
+</body>
+</html>
